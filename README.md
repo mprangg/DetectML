@@ -1,15 +1,1 @@
-# Tensorflow_Freenect
-# Tensorflow_Freenect
-# DetectML
-# DetectML
-# Detect_TF_freenect
-# Detect_TF_freenect
-# DetectML
-# DetectML
-# DetectML
-# Detect_TF_freenect
-# ML_DT
-# ML_DT
-# DT
-# DT
 # DetectML
