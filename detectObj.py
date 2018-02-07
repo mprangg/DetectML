@@ -4,7 +4,7 @@ import time
 import numpy as np
 import os
 import six.moves.urllib as urllib
-
+import manageDB as mdb
 import tarfile
 import tensorflow as tf
 
@@ -26,6 +26,7 @@ NUM_CLASSES = 90
 
 
 # ## Download Model
+
 if not os.path.exists(MODEL_NAME + '/frozen_inference_graph.pb'):
 	print ('Downloading the model')
 	opener = urllib.request.URLopener()
@@ -66,8 +67,10 @@ def get_video():
     array = cv2.cvtColor(array, cv2.COLOR_RGB2BGR)
     return array
 
+
 # Running the tensorflow session
 def detect_Object():
+    tmp = ''
     with detection_graph.as_default():
         with tf.Session(graph=detection_graph) as sess:
             ret = True
@@ -88,8 +91,17 @@ def detect_Object():
                     [boxes, scores, classes, num_detections],
                     feed_dict={image_tensor: image_np_expanded})
 
+                classType =vis_util.f.attr
+
+                if(classType != tmp and classType != 0 ):
+                    #print classType
+                    tmp = classType
+                    mdb.insert_Buff_Detect(classType)
+
+
+
                 # Visualization of the results of a detection.
-                objName = vis_util.visualize_boxes_and_labels_on_image_array("CHECK",
+                vis_util.visualize_boxes_and_labels_on_image_array("CHECK",
                     image_np,
                     np.squeeze(boxes),
                     np.squeeze(classes).astype(np.int32),
@@ -97,9 +109,7 @@ def detect_Object():
                     category_index,
                     use_normalized_coordinates=True,
                     line_thickness=8)
-                if(objName!= None):
-                    print objName
-                    return objName
+
 
                 cv2.imshow('image', cv2.resize(image_np, (640, 480)))
 
@@ -109,12 +119,14 @@ def detect_Object():
                     break
 
 
+
 def detectRT():
     with detection_graph.as_default():
         with tf.Session(graph=detection_graph) as sess:
             ret = True
             while (ret):
-                image_np = get_video()
+                image_np, _ = freenect.sync_get_video()
+                image_np = cv2.cvtColor(image_np, cv2.COLOR_RGB2BGR)
 
                 image_np_expanded = np.expand_dims(image_np, axis=0)
                 image_tensor = detection_graph.get_tensor_by_name('image_tensor:0')
@@ -130,7 +142,7 @@ def detectRT():
                     feed_dict={image_tensor: image_np_expanded})
 
                 # Visualization of the results of a detection.
-                vis_util.visualize_boxes_and_labels_on_image_array("",
+                vis_util.visualize_boxes_and_labels_on_image_array("CHECK",
                     image_np,
                     np.squeeze(boxes),
                     np.squeeze(classes).astype(np.int32),
@@ -146,4 +158,48 @@ def detectRT():
 
                     break
 
-detectRT()
+
+def detect_Webcam() :
+    cap = cv2.VideoCapture(0)
+
+    # Running the tensorflow session
+    with detection_graph.as_default():
+        with tf.Session(graph=detection_graph) as sess:
+            ret = True
+            while (ret):
+                ret, image_np = cap.read()
+                # Expand dimensions since the model expects images to have shape: [1, None, None, 3]
+                image_np_expanded = np.expand_dims(image_np, axis=0)
+                image_tensor = detection_graph.get_tensor_by_name('image_tensor:0')
+                # Each box represents a part of the image where a particular object was detected.
+                boxes = detection_graph.get_tensor_by_name('detection_boxes:0')
+                # Each score represent how level of confidence for each of the objects.
+                # Score is shown on the result image, together with the class label.
+                scores = detection_graph.get_tensor_by_name('detection_scores:0')
+                classes = detection_graph.get_tensor_by_name('detection_classes:0')
+                num_detections = detection_graph.get_tensor_by_name('num_detections:0')
+                # Actual detection.
+                (boxes, scores, classes, num_detections) = sess.run(
+                    [boxes, scores, classes, num_detections],
+                    feed_dict={image_tensor: image_np_expanded})
+                # print classes
+                # Visualization of the results of a detection.
+                vis_util.visualize_boxes_and_labels_on_image_array("CHECK",
+                                                                   image_np,
+                                                                   np.squeeze(boxes),
+                                                                   np.squeeze(classes).astype(np.int32),
+                                                                   np.squeeze(scores),
+                                                                   category_index,
+                                                                   use_normalized_coordinates=True,
+                                                                   line_thickness=8)
+                #      plt.figure(figsize=IMAGE_SIZE)
+                #      plt.imshow(image_np)
+                cv2.imshow('image', cv2.resize(image_np, (1280, 960)))
+                if cv2.waitKey(25) & 0xFF == ord('q'):
+                    cv2.destroyAllWindows()
+                    cap.release()
+                    break
+
+#detect_Webcam()
+detect_Object()
+#detectRT()
