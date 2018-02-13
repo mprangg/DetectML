@@ -7,7 +7,7 @@ from sphinxbase.sphinxbase import *
 
 from check4 import *
 from manageDB import *
-from detectObj import *
+
 
 from espeak import espeak
 espeak.set_parameter(espeak.Parameter.Pitch, 60)
@@ -42,6 +42,7 @@ stream.start_stream()
 in_speech_bf = False
 decoder.start_utt()
 while True:
+
     buf = stream.read(1024)
     if buf:
         decoder.process_raw(buf, False, False)
@@ -57,11 +58,14 @@ while True:
                         print 'Stream decoding result:', strDecode
 
                         if strDecode[-3:] == 'end':
-                            obj_name = get_object_train(strDecode) #word
-                            obj_detect = detect_Object() #
-                            if obj_name == obj_detect:  # ckeck speech and pic
+                            obj_name = get_object_train(strDecode)
+                            buff = search_Buff_Detect(1)
+                            print "Search : ", search_Buff_Detect(1)
+                            if(obj_name == buff):
+                                print "ADD Object to DB"
                                 lenObj = int(lenDB("corpus_Obj.db", "SELECT * FROM object_Train")) # count ROWs
-                                obj_check = insert_object_Train(strDecode,lenObj) #check Found objects?
+                                obj_check = insert_object_Train(obj_name,lenObj+1) #check Found objects?
+
 
                         elif strDecode[:5] == 'jerry':
                             get_object_command(strDecode)
