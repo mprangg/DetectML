@@ -25,27 +25,32 @@ def get_object_train(text):
             if pos[0:1] == 'N':
                 # CAPTURE
                 #cap_ture(word)
-                print word + " >>N"
+                #print word + " >>N"
                 nounP =word
                 break
     return nounP
 
 #>>>>>>>>>>>>>>>> PASS COMMAND! <<<<<<<<<<<<<<<<<<<<
 def get_object_command(text):
-    print "Command ---Obj---" #Jerry move a ball to the left
+    print "Command ---Obj---" #Jerry move a ball to the left #"Jerry grab a ball"
     ans = text[6:]
-    b = TextBlob(ans)
-    sentence = b.sentences[0] #move a ball to the left
-    for word, pos in sentence.tags:
-        if pos[0:1] == 'N':
-            break
-    return word
+
+    return ans
 
 #>>>>>>>>>>>>>>>>>> PASS TrainArm! <<<<<<<<<<<<<<<<
+def text_STEP(text):
+    text = text.split()
+    STEP = ""
+    for i in range(-2,0):
+        STEP = STEP + " " + text[i]
+        #print STEP+".."
+    return STEP
+
 def get_TrainArm(text):
-    print "--Verb + Noun--" #this is how to grab a ball
-    word = text[15:] #grab a ball
-    return word
+    STEP = text_STEP(text) #"this is how to grab a ball one step" >>> grab a ball
+    test = text.split(STEP,1)[0]
+    test = test[15:]
+    return test
 
 #>>>>>>>>>>>>>>>>>> PASS Q! <<<<<<<<<<<<<<<<<<
 def get_object_question(text):
@@ -65,8 +70,25 @@ def get_object_question(text):
                 nounP = word
                 break
     return nounP
+#>>>>>>>>>>> Enum <<<<<<<<<<<<<<<<<<<
+def text2int(textnum, numwords={}):
+    if not numwords:
+        units = [
+            "zero", "one", "two", "three", "four", "five"
+        ]
+        for idx, word in enumerate(units):    numwords[word] = (1, idx)
+
+    current = result = 0
+    for word in textnum.split():
+        if word not in numwords:
+            continue
+            raise Exception("Illegal word: " + word)
+
+        scale, increment = numwords[word]
+        return increment
 
 #print get_object_question("do you know a red bottle")
-#print get_object_command("Jerry move a ball to the left")
-#print get_TrainArm("this is how to grab a ball")
-print get_object_train("This is a red ball end")
+#print get_object_command("Jerry grab a ball")
+#print get_TrainArm("this is how to grab a ball one step")
+#print get_object_train("This is a red ball end")
+#print text2int("test fie is")
